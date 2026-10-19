@@ -237,6 +237,11 @@ html[data-lang="gu"] .inc-group h4{text-transform:none;letter-spacing:0}
 .scard p{font-size:14px;color:var(--soft)}
 .scard .amt{margin-left:auto;font-family:"Outfit",sans-serif;font-weight:800;font-size:28px;color:var(--blue)}
 .scard .btn{padding:10px 16px;font-size:14px}
+.seats{display:inline-flex;align-items:center;gap:10px;margin-top:8px;background:var(--sky);border-radius:999px;padding:4px}
+.seat-btn{width:30px;height:30px;border-radius:50%;border:0;background:#fff;color:var(--blue);font-size:18px;font-weight:800;line-height:1;cursor:pointer;box-shadow:var(--shadow-sm)}
+.seat-btn:hover{background:var(--blue);color:#fff}
+.seat-btn:disabled{opacity:.4;cursor:default;background:#fff;color:var(--blue)}
+.seat-n{font-weight:700;font-size:14px;color:var(--blue-deep);min-width:62px;text-align:center}
 .price-note{text-align:center;color:var(--soft);font-size:15px;margin-top:26px}
 
 /* process */
@@ -685,9 +690,15 @@ html[data-lang="gu"] .foot-nav a{text-transform:none;letter-spacing:0;font-size:
       </div>
       <div class="scard rv">
         <span class="ic"><svg class="i"><use href="#i-sofa"/></svg></span>
-        <div><h4><span lang-en>Sofa cleaning</span><span lang-gu>સોફા સફાઈ</span></h4><p><span lang-en>Deep shampoo &amp; vacuum</span><span lang-gu>ડીપ શેમ્પૂ અને વેક્યુમ</span></p></div>
-        <span class="amt">₹799</span>
-        <a class="btn btn-ghost" data-book="Sofa Cleaning (₹799)" href="#"><span lang-en>Book</span><span lang-gu>બુક</span></a>
+        <div><h4><span lang-en>Sofa cleaning</span><span lang-gu>સોફા સફાઈ</span></h4><p><span lang-en>Up to 5 seats · extra seat ₹199</span><span lang-gu>5 સીટ સુધી · વધારાની સીટ ₹199</span></p>
+          <div class="seats" role="group" aria-label="Number of sofa seats">
+            <button type="button" class="seat-btn" id="seatMinus" aria-label="Fewer seats">−</button>
+            <span class="seat-n" aria-live="polite"><b id="seatCount">5</b> <span lang-en>seats</span><span lang-gu>સીટ</span></span>
+            <button type="button" class="seat-btn" id="seatPlus" aria-label="More seats">+</button>
+          </div>
+        </div>
+        <span class="amt" id="sofaAmt">₹999</span>
+        <a class="btn btn-ghost" id="sofaBook" href="#" target="_blank" rel="noopener"><span lang-en>Book</span><span lang-gu>બુક</span></a>
       </div>
     </div>
     <p class="price-note"><span lang-en>Office, shop, pool, garden &amp; society work is quoted after a quick visit — <a href="#contact">ask for a quote</a>.</span><span lang-gu>ઓફિસ, દુકાન, પૂલ, ગાર્ડન અને સોસાયટીના કામનો ભાવ મુલાકાત પછી આપવામાં આવે છે — <a href="#contact">ભાવ પૂછો</a>.</span></p>
@@ -769,7 +780,7 @@ html[data-lang="gu"] .foot-nav a{text-transform:none;letter-spacing:0;font-size:
             <option value="4 BHK Deep Cleaning (₹5,499)" data-gu="4 BHK ડીપ ક્લિનિંગ (₹5,499)">4 BHK Deep Cleaning (₹5,499)</option>
             <option value="Bungalow Deep Cleaning (₹6,499)" data-gu="બંગલો ડીપ ક્લિનિંગ (₹6,499)">Bungalow Deep Cleaning (₹6,499)</option>
             <option value="Washroom Cleaning (₹699)" data-gu="વૉશરૂમ સફાઈ (₹699)">Washroom Cleaning (₹699)</option>
-            <option value="Sofa Cleaning (₹799)" data-gu="સોફા સફાઈ (₹799)">Sofa Cleaning (₹799)</option>
+            <option value="Sofa Cleaning (₹999 up to 5 seats, ₹199 per extra seat)" data-gu="સોફા સફાઈ (5 સીટ સુધી ₹999, વધારાની સીટ ₹199)">Sofa Cleaning (₹999 up to 5 seats, +₹199/extra seat)</option>
             <option value="Office Cleaning" data-gu="ઓફિસ સફાઈ">Office Cleaning</option>
             <option value="Shop / Showroom Cleaning" data-gu="દુકાન / શોરૂમ સફાઈ">Shop / Showroom Cleaning</option>
             <option value="Pool Maintenance" data-gu="પૂલ મેન્ટેનન્સ">Pool Maintenance</option>
@@ -1045,6 +1056,23 @@ html[data-lang="gu"] .foot-nav a{text-transform:none;letter-spacing:0;font-size:
       });
     }, {threshold:.35}).observe(document.getElementById('package'));
   }
+
+  /* sofa: ₹999 up to 5 seats, ₹199 per extra seat */
+  (function(){
+    var BASE = 999, INCLUDED = 5, EXTRA = 199, MIN = 1, MAX = 15, n = INCLUDED;
+    var count = document.getElementById('seatCount'), amt = document.getElementById('sofaAmt'), book = document.getElementById('sofaBook');
+    var minus = document.getElementById('seatMinus'), plus = document.getElementById('seatPlus');
+    function fmt(v){ return '₹' + v.toLocaleString('en-IN'); }
+    function render(){
+      var extra = Math.max(0, n - INCLUDED), total = BASE + extra * EXTRA;
+      count.textContent = n; amt.textContent = fmt(total);
+      minus.disabled = n <= MIN; plus.disabled = n >= MAX;
+      book.href = WA + encodeURIComponent('Hello VR Cleaning Services, I want to book Sofa Cleaning for ' + n + ' seat' + (n > 1 ? 's' : '') + ' (' + fmt(total) + (extra ? ' = ₹999 + ' + extra + ' extra × ₹199' : '') + ').');
+    }
+    minus.addEventListener('click', function(){ if(n > MIN){ n--; render(); } });
+    plus.addEventListener('click', function(){ if(n < MAX){ n++; render(); } });
+    render();
+  })();
 
   /* price "Book" buttons → WhatsApp */
   document.querySelectorAll('[data-book]').forEach(function(a){
